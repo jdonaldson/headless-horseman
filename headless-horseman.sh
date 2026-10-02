@@ -1,27 +1,26 @@
 #!/bin/bash
-# Weekday 4pm shutdown reminder. Fired by launchd (io.jjd.shutdown-reminder); can also be run by hand.
+# Headless Horseman: a weekday closing-time reminder that rides through every Claude Code
+# thread and tells it to start shutting down. Fired by launchd (io.jjd.headless-horseman);
+# can also be run by hand.
 #
-#   shutdown-reminder.sh            fire everything
-#   shutdown-reminder.sh --dry-run  show which tmux panes would get the message, send nothing
+#   headless-horseman.sh            fire everything
+#   headless-horseman.sh --dry-run  show which tmux panes would get the message, send nothing
 #
-# Four channels, so a tired Friday cannot miss it:
-#   1. macOS notification (with its own sound)
-#   2. a bell sound through the speakers
-#   3. a banner in every tmux session
-#   4. a typed message into every tmux pane that is running Claude Code, submitted with Enter,
-#      so each thread starts its own shutdown routine
+# Channels: macOS notification, a neigh, a banner in every tmux session, and a typed message
+# into every tmux pane running Claude Code (submitted with Enter) so each thread starts its
+# own shutdown routine. Panes whose foreground command is ssh are excluded: at a shell prompt
+# the typed line would execute. Panes showing a permission or AskUserQuestion dialog are
+# skipped, because keystrokes there select options instead of going into the input box.
 #
-# Why typing into panes rather than Claude's session-to-session messaging: only sessions on a
-# recent build register as peers, so a headless `claude -p` broadcast misses older threads.
-# Typing works on any version. The ssh pane for a remote Claude is deliberately excluded:
-# if that pane were sitting at a shell prompt, the typed line would run as a command.
-#
-# Guard: a pane whose last lines show a permission or AskUserQuestion dialog is skipped,
-# because keystrokes there select options instead of going into the input box.
+# Settings (environment variables, all optional):
+#   HORSEMAN_MESSAGE   text typed into each Claude pane and shown in the notification
+#   HORSEMAN_SOUND     path to a wav/aiff/mp3 to play; empty string disables the sound
+#   HORSEMAN_TMUX      path to the tmux binary
 
-MSG="4pm shutdown reminder (automated). Start shutting this thread down: list anything flagged as worth doing before shutdown or that should not wait until tomorrow, finish or explicitly defer each one, then update resume context for this thread."
-LOG="$HOME/Library/Logs/shutdown-reminder.log"
-TMUX_BIN=/opt/homebrew/bin/tmux   # not "TMUX": that env var is how tmux clients find the server socket
+MSG="${HORSEMAN_MESSAGE:-Headless Horseman (automated closing-time reminder). Start shutting this thread down: list anything flagged as worth doing before shutdown or that should not wait until tomorrow, finish or explicitly defer each one, then update resume context for this thread.}"
+SOUND="${HORSEMAN_SOUND-$HOME/.local/share/headless-horseman/horseman.wav}"
+TMUX_BIN="${HORSEMAN_TMUX:-/opt/homebrew/bin/tmux}"   # not "TMUX": that env var is how tmux clients find the server socket
+LOG="$HOME/Library/Logs/headless-horseman.log"
 DRY=0
 [ "$1" = "--dry-run" ] && DRY=1
 
@@ -30,8 +29,12 @@ log() { printf '%s %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*" >> "$LOG"; [ "$DRY"
 log "fired dry_run=$DRY"
 
 if [ "$DRY" = 0 ]; then
-    /usr/bin/osascript -e "display notification \"$MSG\" with title \"Shutdown reminder\" sound name \"Glass\"" 2>> "$LOG"
-    /usr/bin/afplay -v 0.5 "$HOME/.config/kitty/bells/book-close.wav" 2>> "$LOG" &
+    /usr/bin/osascript -e "display notification \"$MSG\" with title \"Headless Horseman\"" 2>> "$LOG"
+    if [ -n "$SOUND" ] && [ -r "$SOUND" ]; then
+        /usr/bin/afplay -v 0.8 "$SOUND" 2>> "$LOG" &
+    else
+        log "sound not played: '$SOUND' missing or disabled"
+    fi
 fi
 
 if ! "$TMUX_BIN" list-sessions >/dev/null 2>&1; then
