@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Headless Horseman: weekday closing-time reminder. Template; `make install` substitutes
+  @HOME@, @HOUR@ and @MINUTE@ and loads the result into launchd.
+
+  Status / logs / removal:
+    launchctl print gui/$(id -u)/io.jjd.headless-horseman | head -20
+    tail ~/Library/Logs/headless-horseman.log
+    make uninstall
+
+  If the Mac is asleep at the scheduled time launchd fires the job once after wake, so a
+  late-afternoon nap still produces one reminder. Weekends are excluded by listing weekdays
+  1-5 explicitly; launchd has no range syntax.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>io.jjd.headless-horseman</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>@HOME@/bin/headless-horseman.sh</string>
+    </array>
+
+    <key>StartCalendarInterval</key>
+    <array>
+        <dict><key>Weekday</key><integer>1</integer><key>Hour</key><integer>@HOUR@</integer><key>Minute</key><integer>@MINUTE@</integer></dict>
+        <dict><key>Weekday</key><integer>2</integer><key>Hour</key><integer>@HOUR@</integer><key>Minute</key><integer>@MINUTE@</integer></dict>
+        <dict><key>Weekday</key><integer>3</integer><key>Hour</key><integer>@HOUR@</integer><key>Minute</key><integer>@MINUTE@</integer></dict>
+        <dict><key>Weekday</key><integer>4</integer><key>Hour</key><integer>@HOUR@</integer><key>Minute</key><integer>@MINUTE@</integer></dict>
+        <dict><key>Weekday</key><integer>5</integer><key>Hour</key><integer>@HOUR@</integer><key>Minute</key><integer>@MINUTE@</integer></dict>
+    </array>
+
+    <key>ExitTimeOut</key>
+    <integer>60</integer>
+
+    <key>ProcessType</key>
+    <string>Interactive</string>
+
+    <key>StandardOutPath</key>
+    <string>@HOME@/Library/Logs/headless-horseman.launchd.log</string>
+    <key>StandardErrorPath</key>
+    <string>@HOME@/Library/Logs/headless-horseman.launchd.log</string>
+</dict>
+</plist>
