@@ -1,12 +1,19 @@
 # Headless Horseman
 
+<p align="center">
+  <img src="art/quidor-1858-headless-horseman-pursuing-ichabod-crane.jpg" width="900"
+       alt="John Quidor, The Headless Horseman Pursuing Ichabod Crane, 1858">
+  <br>
+  <sub>John Quidor, <i>The Headless Horseman Pursuing Ichabod Crane</i>, 1858. Smithsonian American Art Museum. Public domain.</sub>
+</p>
+
 A weekday closing-time reminder for people who run several Claude Code threads in tmux and,
 by late afternoon, forget which ones still have something worth doing before they shut down.
 
 At a scheduled time (default 4pm Mon–Fri) a launchd job rides through the machine and:
 
 1. posts a macOS notification,
-2. plays a horse neigh,
+2. plays a horse neigh and a laugh, both from a long way off,
 3. shows a banner in every tmux session,
 4. types a shutdown message into every tmux pane running Claude Code and submits it, so each
    thread starts its own shutdown routine: list anything flagged as worth doing before
@@ -15,10 +22,17 @@ At a scheduled time (default 4pm Mon–Fri) a launchd job rides through the mach
 The point of step 4 is that the reminder lands inside the threads, not just on the human.
 Tired-Friday working memory is the thing that fails; the threads still remember.
 
+<p align="center">
+  <img src="art/darley-1850-plate-1-the-schoolroom.jpg" width="700"
+       alt="F.O.C. Darley, Ichabod Crane in his schoolroom, 1850">
+  <br>
+  <sub>Ichabod at his desk, surrounded by unruly processes. F.O.C. Darley, 1850. The Met, public domain.</sub>
+</p>
+
 ## Install
 
-Requires macOS, tmux (Homebrew path assumed; override with `HORSEMAN_TMUX`), and Python 3
-for the sound generator. No third-party packages.
+Requires macOS, tmux (Homebrew path assumed; override with `HORSEMAN_TMUX`), and sox only
+if you want to rebuild the sound. No third-party packages otherwise.
 
 ```
 git clone https://github.com/jdonaldson/headless-horseman
@@ -34,6 +48,13 @@ If the Mac is asleep at the scheduled time, launchd fires the job once after wak
 
 ## How it finds Claude panes
 
+<p align="center">
+  <img src="art/darley-1850-plate-5-the-encounter.jpg" width="700"
+       alt="F.O.C. Darley, Ichabod meets the Headless Horseman at the bridge, 1850">
+  <br>
+  <sub>The encounter. F.O.C. Darley, 1850. The Met, public domain.</sub>
+</p>
+
 A Claude Code pane reports its own version string (for example `2.1.288`) as tmux's
 `pane_current_command`, or `claude` during startup. That is the only signal used. Panes
 whose foreground command is `ssh` are excluded even if a remote Claude is running there,
@@ -44,12 +65,25 @@ headless broadcast misses older threads. Typing into the pane works on any versi
 
 ## Safety guard
 
+<p align="center">
+  <img src="art/coburn-1899-fearful-shapes-and-shadows.jpg" width="420"
+       alt="F. S. Coburn, What fearful shapes and shadows beset his path, 1899">
+  <br>
+  <sub>"What fearful shapes and shadows beset his path." F. S. Coburn, 1899 edition. British Library, public domain.</sub>
+</p>
+
 Before typing, the script captures each pane's last 30 lines and skips any pane showing a
 permission prompt or an AskUserQuestion dialog, because keystrokes there select options
 instead of going into the input box. Skipped panes are logged; the notification and banner
 still fire, so you can deal with them by hand.
 
 ## Configuration
+
+<p align="center">
+  <img src="art/abbey-ichabod-crane.jpg" width="260" alt="Edwin Austin Abbey, Ichabod Crane">
+  <br>
+  <sub>Ichabod, dressed for the Van Tassels'. Edwin Austin Abbey. Public domain.</sub>
+</p>
 
 Environment variables read by `headless-horseman.sh` (set them in the plist, or export them
 before `make fire`):
@@ -61,6 +95,13 @@ before `make fire`):
 | `HORSEMAN_TMUX`    | `/opt/homebrew/bin/tmux`                          | tmux binary                               |
 
 ## The sound
+
+<p align="center">
+  <img src="art/darley-1850-plate-6-the-chase.jpg" width="700"
+       alt="F.O.C. Darley, the chase, 1850">
+  <br>
+  <sub>The chase. F.O.C. Darley, 1850. The Met, public domain.</sub>
+</p>
 
 The default, `sounds/horseman.wav`, is a real horse neighing in a large dark room, followed
 by a maniacal laugh as the neigh fades. Both parts are recordings with sox reverb; the
@@ -91,3 +132,22 @@ sox -m sounds/neigh-reverb.wav "|sox sounds/cackle.wav -p pad 2.4" sounds/horsem
 `~/Library/Logs/headless-horseman.log` records each fire and, per pane, whether the message
 was sent or why it was skipped. launchd's own stdout/stderr goes to
 `~/Library/Logs/headless-horseman.launchd.log`.
+
+## Art
+
+Everything in `art/` is public domain, downscaled to 1200 px from the sources below.
+
+| File | Work | Source |
+| ---- | ---- | ------ |
+| `quidor-1858-headless-horseman-pursuing-ichabod-crane.jpg` | John Quidor, *The Headless Horseman Pursuing Ichabod Crane*, oil, 1858 | [Smithsonian American Art Museum via Wikimedia Commons](https://commons.wikimedia.org/wiki/File:John_Quidor_-_The_Headless_Horseman_Pursuing_Ichabod_Crane_-_Google_Art_Project.jpg) |
+| `quidor-ichabod-crane-flying-from-the-headless-horseman.jpg` | John Quidor, *Ichabod Crane Flying from the Headless Horseman*, oil | [Yale University Art Gallery via Wikimedia Commons](https://commons.wikimedia.org/wiki/File:John_Quidor_-_Ichabod_Crane_Flying_from_the_Headless_Horseman_-_1948.68_-_Yale_University_Art_Gallery.jpg) |
+| `darley-1850-plate-*.jpg` | F.O.C. Darley, *Illustrations of the Legend of Sleepy Hollow*, etchings for the American Art Union, 1850 (plates 1, 2, 5, 6) | [The Metropolitan Museum of Art via Wikimedia Commons](https://commons.wikimedia.org/wiki/Category:The_Legend_of_Sleepy_Hollow_illustrations) |
+| `abbey-ichabod-crane.jpg` | Edwin Austin Abbey, *Ichabod Crane* | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Edwin_Austin_Abbey_-_Ichabod_Crane.jpg) |
+| `coburn-1899-fearful-shapes-and-shadows.jpg` | F. S. Coburn, frontispiece to the 1899 edition of *The Legend of Sleepy Hollow* | [British Library via Wikimedia Commons](https://commons.wikimedia.org/wiki/File:What_fearful_shapes_and_shadows_beset_his_path_-_The_Legend_of_Sleepy_Hollow_(1899),_frontispiece_-_BL.jpg) |
+
+<p align="center">
+  <img src="art/quidor-ichabod-crane-flying-from-the-headless-horseman.jpg" width="700"
+       alt="John Quidor, Ichabod Crane Flying from the Headless Horseman">
+  <br>
+  <sub>Go home. John Quidor, <i>Ichabod Crane Flying from the Headless Horseman</i>. Yale University Art Gallery. Public domain.</sub>
+</p>
