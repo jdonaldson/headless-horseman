@@ -57,16 +57,34 @@ before `make fire`):
 | Variable           | Default                                           | Meaning                                   |
 | ------------------ | ------------------------------------------------- | ----------------------------------------- |
 | `HORSEMAN_MESSAGE` | the shutdown message shown in the script          | text typed into each pane and notified    |
-| `HORSEMAN_SOUND`   | `~/.local/share/headless-horseman/neigh.wav`      | sound file to play; empty string disables |
+| `HORSEMAN_SOUND`   | `~/.local/share/headless-horseman/horseman.wav`   | sound file to play; empty string disables |
 | `HORSEMAN_TMUX`    | `/opt/homebrew/bin/tmux`                          | tmux binary                               |
 
-## The neigh
+## The sound
 
-`sounds/neigh.wav` is synthesized by `tools/make_neigh.py` with the Python standard library
-only: a trilled, descending whinny that drops into a pulsed, breathy nicker. It is
-deterministic, so `make sound` regenerates the identical file, and nothing in the repo
-carries a sample license. Swap in any wav or aiff via `HORSEMAN_SOUND` if you prefer a real
-horse.
+The default, `sounds/horseman.wav`, is a real horse neighing in a large dark room, followed
+by a maniacal laugh as the neigh fades. Both parts are recordings with sox reverb; the
+components and alternates ship in `sounds/`:
+
+| File                                  | What it is                                                                 | License |
+| ------------------------------------- | -------------------------------------------------------------------------- | ------- |
+| `horseman.wav`                        | default: `neigh-reverb.wav` with `cackle.wav` starting 2.4 s in            | CC BY-SA 3.0 (via the cackle) |
+| `neigh.wav`                           | "Horse Neighing #3" by Joseph Sardin, [BigSoundBank](https://bigsoundbank.com/horse-neighing-3-s0863.html), normalized. Original mp3 kept alongside. | CC0 |
+| `neigh-reverb.wav`                    | the same with a long hall reverb                                           | CC0 |
+| `cackle.wav`                          | "Evil laugh 2" by Ondra Krist, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Evillaugh.ogg), mono, same reverb. Original oga kept alongside. | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) |
+| `cackle-alt-horror-laugh-klankbeeld.ogg` | alternate laugh by klankbeeld, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Horror_laugh.ogg), unprocessed | [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) |
+| `cackle-alt-evil-laughter-stilgar.ogg` | alternate laugh by stilgar, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Evil_laughter.ogg), 17 s, unprocessed | public domain |
+| `neigh-wikimedia-wiehern.wav`         | alternate neigh by Hü, [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Wiehern.ogg), normalized | public domain |
+| `neigh-synth.wav`                     | synthetic nightmare neigh from `tools/make_neigh.py` (stdlib only, deterministic, `make synth` regenerates it byte-for-byte) | none needed |
+
+Pick one at install time with `make install SOUND=sounds/neigh-reverb.wav`, or point
+`HORSEMAN_SOUND` at any wav, aiff or mp3 afterwards. To rebuild the processed files:
+
+```
+sox sounds/neigh.wav sounds/neigh-reverb.wav gain -4 pad 0 2.5 reverb 70 40 100 100 20 -1 channels 1 norm -1
+sox sounds/cackle-evil-laugh-2-krist.oga sounds/cackle.wav channels 1 gain -4 pad 0 3 reverb 70 40 100 100 20 -1 channels 1 norm -1
+sox -m sounds/neigh-reverb.wav "|sox sounds/cackle.wav -p pad 2.4" sounds/horseman.wav norm -1
+```
 
 ## Logs
 

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Synthesize the Headless Horseman's horse. Standard library only, deterministic.
+"""Synthesize a nightmare version of the Headless Horseman's horse. Standard library only,
+deterministic. The default sound is a real recording; this is the optional alternate.
 
-    python3 tools/make_neigh.py sounds/neigh.wav
+    python3 tools/make_neigh.py sounds/neigh-synth.wav
 
 Shape: a whinny (high, trilled, descending) that cracks into a nicker (low, pulsed, breathy).
 Nightmare dressing: a tritone shadow voice under the whinny, inharmonic partials, a sub-octave
@@ -289,4 +290,4 @@ def main(path):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1] if len(sys.argv) > 1 else "sounds/neigh.wav")
+    main(sys.argv[1] if len(sys.argv) > 1 else "sounds/neigh-synth.wav")
