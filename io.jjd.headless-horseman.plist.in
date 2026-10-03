@@ -33,8 +33,9 @@
         <dict><key>Weekday</key><integer>5</integer><key>Hour</key><integer>@HOUR@</integer><key>Minute</key><integer>@MINUTE@</integer></dict>
     </array>
 
+    <!-- The headless messenger run takes tens of seconds; give it room. -->
     <key>ExitTimeOut</key>
-    <integer>60</integer>
+    <integer>180</integer>
 
     <key>ProcessType</key>
     <string>Interactive</string>

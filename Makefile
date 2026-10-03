@@ -2,7 +2,7 @@
 #
 #   make install            install script + sound, render the plist, load it into launchd
 #   make install HOUR=17    same, at 5pm instead of 4pm (MINUTE=30 also works)
-#   make dry-run            list the tmux panes that would receive the message, send nothing
+#   make dry-run            list the Claude sessions that would receive the message, send nothing
 #   make fire               run the reminder once, right now
 #   make status             launchd state and the last log lines
 #   make uninstall          unload from launchd and remove the installed files

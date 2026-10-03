@@ -7,6 +7,11 @@
   <sub>John Quidor, <i>The Headless Horseman Pursuing Ichabod Crane</i>, 1858. Smithsonian American Art Museum. Public domain.</sub>
 </p>
 
+> **This is a personal tool, published for reading, not for use.** It is wired to one
+> person's machine: Homebrew tmux paths, a launchd label, a `~/bin` install, a message that
+> refers to that person's own resume-file routine. Nobody else should actually install it.
+> Borrow the idea, not the repo.
+
 A weekday closing-time reminder for people who run several Claude Code threads in tmux and,
 by late afternoon, forget which ones still have something worth doing before they shut down.
 
@@ -15,9 +20,10 @@ At a scheduled time (default 4pm Mon–Fri) a launchd job rides through the mach
 1. posts a macOS notification,
 2. plays a horse neigh and a laugh, both from a long way off,
 3. shows a banner in every tmux session,
-4. types a shutdown message into every tmux pane running Claude Code and submits it, so each
-   thread starts its own shutdown routine: list anything flagged as worth doing before
-   shutdown, finish or explicitly defer each item, then write the thread's resume context.
+4. sends a shutdown message to every other Claude Code session on the machine through
+   Claude's own session-to-session messaging, so each thread starts its own shutdown
+   routine: list anything flagged as worth doing before shutdown, finish or explicitly defer
+   each item, then write the thread's resume context.
 
 The point of step 4 is that the reminder lands inside the threads, not just on the human.
 Tired-Friday working memory is the thing that fails; the threads still remember.
@@ -31,22 +37,22 @@ Tired-Friday working memory is the thing that fails; the threads still remember.
 
 ## Install
 
-Requires macOS, tmux (Homebrew path assumed; override with `HORSEMAN_TMUX`), and sox only
-if you want to rebuild the sound. No third-party packages otherwise.
+Requires macOS, Claude Code on a recent build (see below), tmux (Homebrew path assumed;
+override with `HORSEMAN_TMUX`), and sox only if you want to rebuild the sound.
 
 ```
 git clone https://github.com/jdonaldson/headless-horseman
 cd headless-horseman
 make install            # 4pm weekdays
 make install HOUR=17    # or 5pm
-make dry-run            # which panes would get the message, without sending
+make dry-run            # which Claude sessions would get the message, without sending
 make fire               # ride now
 ```
 
 `make status` shows the launchd state and the log tail. `make uninstall` removes everything.
 If the Mac is asleep at the scheduled time, launchd fires the job once after wake.
 
-## How it finds Claude panes
+## How it reaches Claude sessions
 
 <p align="center">
   <img src="art/darley-1850-plate-5-the-encounter.jpg" width="700"
@@ -55,15 +61,18 @@ If the Mac is asleep at the scheduled time, launchd fires the job once after wak
   <sub>The encounter. F.O.C. Darley, 1850. The Met, public domain.</sub>
 </p>
 
-A Claude Code pane reports its own version string (for example `2.1.288`) as tmux's
-`pane_current_command`, or `claude` during startup. That is the only signal used. Panes
-whose foreground command is `ssh` are excluded even if a remote Claude is running there,
-because a typed line at a shell prompt would execute.
+The script starts a throwaway headless Claude session (`claude -p`, default model `haiku`)
+and allows it exactly two tools: `ListAgents`, which lists the other Claude Code sessions on
+the machine, and `SendMessage`, which delivers the shutdown message to each one. The
+messenger prints one line per peer, `sent` or `failed`, and that goes to the log. Each
+receiving session sees the message as a cross-session message from a peer and acts on it in
+its own turn.
 
-Why not Claude's session-to-session messaging? It only sees sessions on a recent build, so a
-headless broadcast misses older threads. Typing into the pane works on any version.
+An earlier version typed the message into every tmux pane with `send-keys`. That worked on
+any build but needed a guard against panes with a permission dialog open, where keystrokes
+select options. Session messaging has no such problem.
 
-## Safety guard
+## Compatibility
 
 <p align="center">
   <img src="art/coburn-1899-fearful-shapes-and-shadows.jpg" width="420"
@@ -72,10 +81,15 @@ headless broadcast misses older threads. Typing into the pane works on any versi
   <sub>"What fearful shapes and shadows beset his path." F. S. Coburn, 1899 edition. British Library, public domain.</sub>
 </p>
 
-Before typing, the script captures each pane's last 30 lines and skips any pane showing a
-permission prompt or an AskUserQuestion dialog, because keystrokes there select options
-instead of going into the input box. Skipped panes are logged; the notification and banner
-still fire, so you can deal with them by hand.
+**Only newer Claude Code builds are reached.** Sessions register as peers only on builds
+with session-to-session messaging; verified on 2.1.288, while threads still running 2.1.286
+and 2.1.287 on the same machine were invisible to `ListAgents`. Older threads still get the
+notification, the sound and the tmux banner, but not the message. Restart a long-lived
+thread on a current build if you want the Horseman to reach it.
+
+A receiving session in a different permission mode from the headless messenger may hold the
+message for its user's approval rather than acting on it. The messenger runs in the default
+prompting mode; sessions in auto mode received the message directly in testing.
 
 ## Configuration
 
@@ -90,9 +104,11 @@ before `make fire`):
 
 | Variable           | Default                                           | Meaning                                   |
 | ------------------ | ------------------------------------------------- | ----------------------------------------- |
-| `HORSEMAN_MESSAGE` | the shutdown message shown in the script          | text typed into each pane and notified    |
+| `HORSEMAN_MESSAGE` | the shutdown message shown in the script          | text sent to each session and notified    |
 | `HORSEMAN_SOUND`   | `~/.local/share/headless-horseman/horseman.wav`   | sound file to play; empty string disables |
 | `HORSEMAN_TMUX`    | `/opt/homebrew/bin/tmux`                          | tmux binary                               |
+| `HORSEMAN_CLAUDE`  | `~/.local/bin/claude`                             | claude binary for the messenger run       |
+| `HORSEMAN_MODEL`   | `haiku`                                           | model for the messenger run               |
 
 ## The sound
 
